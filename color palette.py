@@ -8,9 +8,10 @@ from tkinter.font import Font
 from ttkthemes import ThemedTk
 from PIL import Image, ImageTk
 import colorsys
+import math
 
 #convert RGB to HEX 
-def rgb_color(rgb):
+def rgb_to_hex(rgb):
     return '#%02X%02X%02X' % (int(rgb[0]), int(rgb[1]), int(rgb[2]))
 
 #convert HSV to RGB
@@ -25,6 +26,26 @@ def hsv_to_rgb(h, s, v):
         if i == 4: return (t, p, v)
         if i == 5: return (v, p, q)
 
+def rgb_to_hsv(r, g, b):
+    r, g, b = r/255.0, g/255.0, b/255.0
+    mx = max(r, g, b)
+    mn = min(r, g, b)
+    df = mx-mn
+    if mx == mn:
+        h = 0
+    elif mx == r:
+        h = (60 * ((g-b)/df) + 360) % 360
+    elif mx == g:
+        h = (60 * ((b-r)/df) + 120) % 360
+    elif mx == b:
+        h = (60 * ((r-g)/df) + 240) % 360
+    if mx == 0:
+        s = 0
+    else:
+        s = (df/mx)*100
+    v = mx*100
+    return h/360, s/100, v/100
+
 class ColorPalette(ThemedTk):
     def __init__(self):
         #parent initialize
@@ -38,12 +59,10 @@ class ColorPalette(ThemedTk):
         #non-widget variables initialization
         self.curr_hue = 0
         self.current_corr = [359, 1]
-        self.current_hsv = [0, 1, 1]
-        self.current_rgb = [IntVar(value=i) for i in hsv_to_rgb(*self.current_hsv)]
+        self.current_hsv = [DoubleVar(value=i) for i in (0, 1, 1)]
+        self.current_rgb = [IntVar(value=i) for i in hsv_to_rgb(*(i.get() for i in self.current_hsv))]
         self.current_cross = []
         self.before_delete_value = ''
-
-        [var.trace_add('write', self.update_property_callback) for var in self.current_rgb]
 
         #widgets initialization
         self.hue_picker_frame = Frame(self, background='#f0f0f0')
@@ -62,18 +81,20 @@ class ColorPalette(ThemedTk):
         self.v_label = ttk.Label(self.property_frame, text='V:', background='#f0f0f0')
         self.hex_label = ttk.Label(self.property_frame, text='# ', background='#f0f0f0')
 
-        vcmd = (self.register(self.onValidate),
+        rgb_validator = (self.register(self.onRGBValidate),
                 '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
-        self.r_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, textvariable=self.current_rgb[0], validate="key", validatecommand=vcmd)
-        self.g_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, textvariable=self.current_rgb[1], validate="key", validatecommand=vcmd)
-        self.b_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, textvariable=self.current_rgb[2], validate="key", validatecommand=vcmd)
-        self.h_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=360)
-        self.s_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255)
-        self.v_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255)
+        hsv_validator = (self.register(self.onHSVValidate),
+                '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+        self.r_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=rgb_validator, name='rgb0')
+        self.g_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=rgb_validator, name='rgb1')
+        self.b_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=rgb_validator, name='rgb2')
+        self.h_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=360, validate="key", validatecommand=hsv_validator, name='hsv0')
+        self.s_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=hsv_validator, name='hsv1')
+        self.v_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=hsv_validator, name='hsv2')
         self.hex_input = ttk.Entry(self.property_frame, width=8, font=Font(size=9))
 
         #draw hue picker
-        [self.hue_picker.create_line(0, i, 12, i, width=1, fill=rgb_color(hsv_to_rgb(i/360, 1, 1))) for i in range(361)]
+        [self.hue_picker.create_line(0, i, 12, i, width=1, fill=rgb_to_hex(hsv_to_rgb(i/360, 1, 1))) for i in range(361)]
 
         #widget placing
         self.saturation_value_picker.grid(row=0, column=1)
@@ -111,11 +132,16 @@ class ColorPalette(ThemedTk):
         self.saturation_value_picker.bind('<Button-1>', self.pick_saturation_value)
         
         #post initialization
-        self.update_property(False)
+        self.update_property()
         self.generate_saturation_value()
         self.update_cross()
 
-    def onValidate(self, d, i, P, s, S, v, V, W):
+    def format_rgb_hsv(self):
+        self.current_hsv[0].set(self.current_hsv[0].get()/360)
+        [self.current_hsv[i].set(self.current_hsv[i].get()/255) for i in range(1, 3)]
+        [self.current_rgb[i].set(v) for i, v in enumerate([round(i*255) for i in colorsys.hsv_to_rgb(*[i.get() for i in self.current_hsv])])]
+
+    def onHSVValidate(self, d, i, P, s, S, v, V, W):
         try:
             if self.nametowidget(W).selection_get() == self.nametowidget(W).get():
                 if d=='1' and S.isdigit(): 
@@ -133,9 +159,46 @@ class ColorPalette(ThemedTk):
                     self.before_delete_value = self.nametowidget(W).get()
                     return True
         except: pass
+        if P=='': return False
+        if int(P.replace('.', ''))==0 or (P!='' and S.isdigit() and float(P)):
+            if int(W.split('.hsv')[-1]) == 0: 
+                if not 0<=float(P)<=360: return False
+                self.current_hsv[int(W.split('.hsv')[-1])].set(float(P)/360)
+            else:
+                if not 0<=float(P)<=100: return False
+                self.current_hsv[int(W.split('.hsv')[-1])].set(float(P)/100)
+            
+            [self.current_rgb[i].set(round(v)) for i, v in enumerate(hsv_to_rgb(self.current_hsv[0].get(), self.current_hsv[1].get(), self.current_hsv[2].get()))]
+            
+            self.update_property(hsv=False)
+            return True
+        return False
+
+    def onRGBValidate(self, d, i, P, s, S, v, V, W):
+        try:
+            if self.nametowidget(W).selection_get() == self.nametowidget(W).get():
+                if d=='1' and S.isdigit(): 
+                    self.nametowidget(W).delete(0, 'end')
+                    self.nametowidget(W).insert(0, S)
+                    self.update_rgb(W, P)
+                    return True
+                elif d=='0':
+                    self.nametowidget(W).set(0)
+                    self.update_rgb(W, '0')
+                    return False
+                else: 
+                    self.bell()
+                    return False
+            if self.nametowidget(W).selection_get():
+                if d=='0':
+                    self.before_delete_value = self.nametowidget(W).get()
+                    self.update_rgb(W, P)
+                    return True
+        except: pass
 
         if P=='':
             self.nametowidget(W).set(0)
+            self.update_rgb(W, '0')
             self.bell() 
             return False
 
@@ -143,8 +206,9 @@ class ColorPalette(ThemedTk):
             if not 0<=int(P)<=255:
                 self.bell()
                 return False
-            if s.isdigit() and not int(s):
+            if s=='0' or (s.isdigit() and not int(s) and not i):
                 self.nametowidget(W).set(S)
+                self.update_rgb(W, P)
                 return False
             if P.startswith('0'):
                 self.nametowidget(W).set(int(self.nametowidget(W).get()))
@@ -158,33 +222,38 @@ class ColorPalette(ThemedTk):
                     self.nametowidget(W).insert(0, self.before_delete_value)
                     self.before_delete_value = ''
                 return False
+        self.update_rgb(W, P)
         return True
 
-    def update_property_callback(self, a, b, c):
-        self.current_hsv = (colorsys.rgb_to_hsv(*(i.get()/255*100 for i in self.current_rgb)))
-        self.h_input.set(round(self.current_hsv[0]*360, 1))
-        self.s_input.set(round(self.current_hsv[1]*100, 1))
-        self.v_input.set(round(self.current_hsv[2], 1))
-        self.hex_input.delete(0, 'end')
-        self.hex_input.insert(0, rgb_color([i.get() for i in self.current_rgb])[1:])
-        self.color_showcase.delete('all')
-        self.color_showcase.create_rectangle(2, 2, 101, 101, fill=rgb_color([i.get() for i in self.current_rgb]), width=0)
+    def update_rgb(self, W, P): 
+        self.current_rgb[int(W.split('.rgb')[-1])].set(int(P))
+        [self.current_hsv[i].set(v) for i, v in enumerate(rgb_to_hsv(*(i.get() for i in self.current_rgb)))]
+        
+        self.update_property(rgb=False)
 
     #update values in property section
-    def update_property(self, from_color_picker=True):
-        if not from_color_picker:
+    def update_property(self, rgb=True, hsv=True, is_generating_hue=False):
+        if rgb:
             self.r_input.set(round(self.current_rgb[0].get()))
             self.g_input.set(round(self.current_rgb[1].get()))
             self.b_input.set(round(self.current_rgb[2].get()))
-            self.h_input.set(round(self.current_hsv[0]/255*360, 1))
-            self.s_input.set(round(self.current_hsv[1]/255*100, 1))
-            self.v_input.set(round(self.current_hsv[2]/255*100, 1))
+        if hsv:
+            self.h_input.set(round(self.current_hsv[0].get()*360, 1))
+            self.s_input.set(round(self.current_hsv[1].get()*100, 1))
+            self.v_input.set(round(self.current_hsv[2].get()*100, 1))
+            
+        if not(rgb==True and hsv==True):
+            self.update_hue_picker_arrow(self.current_hsv[0].get())
+            self.curr_hue = self.current_hsv[0].get()*360
+            self.generate_saturation_value()
+            self.current_corr = (self.current_hsv[1].get()*360, 360-self.current_hsv[2].get()*360)
+            self.update_cross()
 
-            self.hex_input.delete(0, 'end')
-            self.hex_input.insert(0, rgb_color([i.get() for i in self.current_rgb])[1:])
-            self.color_showcase.delete('all')
-            self.color_showcase.create_rectangle(2, 2, 101, 101, fill=rgb_color([i.get() for i in self.current_rgb]), width=0)
-        else: print("not from color picker")
+        self.hex_input.delete(0, 'end')
+        self.hex_input.insert(0, rgb_to_hex([i.get() for i in self.current_rgb])[1:])
+        self.color_showcase.delete('all')
+        self.color_showcase.create_rectangle(2, 2, 101, 101, fill=rgb_to_hex([i.get() for i in self.current_rgb]), width=0)
+        
 
     #things to do when user pick a new hue value in the colorful line
     def pick_hue(self, e):
@@ -193,27 +262,31 @@ class ColorPalette(ThemedTk):
         if e.y > 360: e.y = 360
 
         self.curr_hue = e.y
-        self.hue_picker_arrow.delete(self.current_arrow)
-        self.current_arrow = self.hue_picker_arrow.create_polygon(1, e.y+7, 8, e.y, 8, e.y+14, fill='#343434')
-        self.current_hsv = list(self.pixels[self.current_corr[0], self.current_corr[1]])
-        [self.current_rgb[i].set(round(v)) for i, v in enumerate(hsv_to_rgb(self.current_hsv[0]/255, self.current_hsv[1]/255, self.current_hsv[2]/255))]
 
+        self.update_hue_picker_arrow(e.y/360)
+        
         self.generate_saturation_value()
+
+        self.current_hsv[0].set(self.curr_hue)
+        [self.current_hsv[i].set(self.current_hsv[i].get()*255) for i in range(1, 3)]
+
+        self.format_rgb_hsv()
+        self.update_property(is_generating_hue=True)
         self.update_cross()
 
     #things to do when user click on a new place on the big saturationn and value palette
     def pick_saturation_value(self, e):
         #prevent mouse coordinates out of range
-        if e.x<1: e.x = 1
-        if e.y<1: e.y = 1
-        if e.x>360: e.x = 359
-        if e.y>360: e.y = 359
+        if e.x<0: e.x = 0
+        if e.y<0: e.y = 0
+        if e.x>360: e.x = 360
+        if e.y>360: e.y = 360
 
         self.current_corr = [e.x, e.y]
-        self.current_hsv = list(self.pixels[e.x-1, e.y-1])
-        self.current_hsv[0] = self.pixels[359, 0][0]
-        [self.current_rgb[i].set(round(v)) for i, v in enumerate(hsv_to_rgb(self.current_hsv[0]/255, self.current_hsv[1]/255, self.current_hsv[2]/255))]
-        
+        sv = [e.x, (360-e.y)]
+        [self.current_hsv[i].set(v) for i, v in enumerate((self.curr_hue, *[i/360*255 for i in sv]))]
+        self.format_rgb_hsv()
+        self.update_property()
         self.update_cross()
 
     #makes the crosshair to follow user's mouse pointer on saturationn and value palette
@@ -226,29 +299,35 @@ class ColorPalette(ThemedTk):
             self.saturation_value_picker.create_line(self.current_corr[0], self.current_corr[1]-3, self.current_corr[0], self.current_corr[1]-8, width=2, fill='black')
         ]
 
+    def update_hue_picker_arrow(self, y):
+        y = y * 360
+        self.hue_picker_arrow.delete(self.current_arrow)
+        self.current_arrow = self.hue_picker_arrow.create_polygon(1, y+7, 8, y, 8, y+14, fill='#343434')
+
     #generate a new saturationn and value palette when user pick a new hue
     def generate_saturation_value(self):
         self.saturation_value_picker.delete('all')
         im= Image.new("RGB", (256, 256), "#000000")
         pixels = im.load()
 
-        v=0
-        h=self.curr_hue
-        s=0
+        v = 0
+        h = self.curr_hue
+        s = 0
 
-        h_x=0
-        v_y=0
+        h_x = 0
+        v_y = 0
         for v in range(255, -1, -1):
-            h_x=0
             for s in range(256):
-                pixels[h_x, v_y] = tuple(map(int, hsv_to_rgb(h/360, s/255, v/255)))
-                h_x+=1
-            v_y+=1
+                pixels[h_x, v_y] = tuple(int(i) for i in hsv_to_rgb(h/360, s/255, v/255))
+                h_x += 1
+            h_x = 0
+            v_y += 1
 
-        self.im = im.resize((360, 360)).convert('HSV')
-        self.pixels = self.im.load()
+        self.im = im.resize((360, 360))
+        self.pixels = self.im.convert('HSV').load()
         self.img = ImageTk.PhotoImage(self.im)
         self.saturation_value_picker.create_image(1, 1, image=self.img, anchor=NW)
+        self.update_cross()
 
 if __name__ == '__main__':
     root = ColorPalette()
