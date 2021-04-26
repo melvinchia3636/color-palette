@@ -9,6 +9,7 @@ from ttkthemes import ThemedTk
 from PIL import Image, ImageTk, ImageColor, ImageDraw
 import colorsys
 import math
+from itertools import count
 
 #convert RGB to HEX 
 def rgb_to_hex(rgb):
@@ -105,40 +106,41 @@ class ColorPalette(ThemedTk):
 
         #widgets initialization
         self.saturation_value_picker = Canvas(self, width=360, height=360, border=0, background='black', highlightthickness=1, highlightbackground='#B4B4B4')
-        self.property_frame = Frame(self, background='#f0f0f0')
+        self.property_frame = Frame(self, background='#f0f0f0', name='property')
         self.color_showcase = Canvas(self.property_frame, width=101, height=101, highlightbackground='#B4B4B4', highlightthickness=1)
 
-        self.r_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.g_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.b_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.h_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.s_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.v_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.c_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.m_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.y_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
-        self.k_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15)
+        self.r_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_r')
+        self.g_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_g')
+        self.b_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_b')
+        self.h_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_h')
+        self.s_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_s')
+        self.v_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_v')
+        self.c_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_c')
+        self.m_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_m')
+        self.y_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_y')
+        self.k_preview = Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name='preview_k')
 
-        self.r_label = ttk.Label(self.property_frame, text='Red', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.g_label = ttk.Label(self.property_frame, text='Green', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.b_label = ttk.Label(self.property_frame, text='Blue', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.h_label = ttk.Label(self.property_frame, text='Hue', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.s_label = ttk.Label(self.property_frame, text='Saturation', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.v_label = ttk.Label(self.property_frame, text='Value', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.c_label = ttk.Label(self.property_frame, text='Cyan', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.m_label = ttk.Label(self.property_frame, text='Magenta', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.y_label = ttk.Label(self.property_frame, text='Yellow', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.k_label = ttk.Label(self.property_frame, text='BlacK', background='#f0f0f0', justify=LEFT, anchor=W)
-        self.hex_label = ttk.Label(self.property_frame, text='HTML', background='#f0f0f0', justify=LEFT, anchor=W)
+        self.r_label = ttk.Label(self.property_frame, text='Red', background='#f0f0f0', justify=LEFT, anchor=W, name='label_r')
+        self.g_label = ttk.Label(self.property_frame, text='Green', background='#f0f0f0', justify=LEFT, anchor=W, name='label_g')
+        self.b_label = ttk.Label(self.property_frame, text='Blue', background='#f0f0f0', justify=LEFT, anchor=W, name='label_b')
+        self.h_label = ttk.Label(self.property_frame, text='Hue', background='#f0f0f0', justify=LEFT, anchor=W, name='label_h')
+        self.s_label = ttk.Label(self.property_frame, text='Saturation', background='#f0f0f0', justify=LEFT, anchor=W, name='label_s')
+        self.v_label = ttk.Label(self.property_frame, text='Value', background='#f0f0f0', justify=LEFT, anchor=W, name='label_v')
+        self.c_label = ttk.Label(self.property_frame, text='Cyan', background='#f0f0f0', justify=LEFT, anchor=W, name='label_c')
+        self.m_label = ttk.Label(self.property_frame, text='Magenta', background='#f0f0f0', justify=LEFT, anchor=W, name='label_m')
+        self.y_label = ttk.Label(self.property_frame, text='Yellow', background='#f0f0f0', justify=LEFT, anchor=W, name='label_y')
+        self.k_label = ttk.Label(self.property_frame, text='BlacK', background='#f0f0f0', justify=LEFT, anchor=W, name='label_k')
+        #self.hex_label = ttk.Label(self.property_frame, text='HTML', background='#f0f0f0', justify=LEFT, anchor=W)
 
-        rgb_validator = (self.register(lambda *args, max_val=255: self.onRGBCMYKValidate(*args, max_val)),
+        rgb_validator = (self.register(lambda *args, max_val=255: self.onRGBCMYKValidate(*args, max_val=max_val)),
                 '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
-        cmyk_validator = (self.register(lambda *args, max_val=100: self.onRGBCMYKValidate(*args, max_val)),
+        cmyk_validator = (self.register(lambda *args, max_val=100: self.onRGBCMYKValidate(*args, max_val=max_val)),
                 '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         hsv_validator = (self.register(self.onHSVValidate),
                 '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         hex_validator = (self.register(self.onHexValidate),
                 '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+                
         self.r_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=rgb_validator, name='rgb0', command=lambda: self.increment_callback('rgb', 0))
         self.g_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=rgb_validator, name='rgb1', command=lambda: self.increment_callback('rgb', 1))
         self.b_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=255, validate="key", validatecommand=rgb_validator, name='rgb2', command=lambda: self.increment_callback('rgb', 2))
@@ -149,7 +151,7 @@ class ColorPalette(ThemedTk):
         self.m_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=100, validate="key", validatecommand=cmyk_validator, name='cmyk1', command=lambda: self.increment_callback('cmyk', 1))
         self.y_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=100, validate="key", validatecommand=cmyk_validator, name='cmyk2', command=lambda: self.increment_callback('cmyk', 2))
         self.k_input = ttk.Spinbox(self.property_frame, width=7, from_=0, to=100, validate="key", validatecommand=cmyk_validator, name='cmyk3', command=lambda: self.increment_callback('cmyk', 3))
-        self.hex_input = ttk.Entry(self.property_frame, width=8, font=Font(size=9), validate="key", validatecommand=hex_validator, textvariable=self.current_hex)
+        #self.hex_input = ttk.Entry(self.property_frame, width=8, font=Font(size=9), validate="key", validatecommand=hex_validator, textvariable=self.current_hex)
 
         self.r_slider = Canvas(self.property_frame, height=28, width=265, highlightthickness=1, highlightbackground='#B4B4B4', cursor="tcross", name='slider_r')
         self.g_slider = Canvas(self.property_frame, height=28, width=265, highlightthickness=1, highlightbackground='#B4B4B4', cursor="tcross", name='slider_g')
@@ -167,51 +169,13 @@ class ColorPalette(ThemedTk):
         self.property_frame.grid(row=0, column=3, pady=(3, 0), padx=(20, 0))
         #self.color_showcase.grid(row=0, column=0, columnspan=3, pady=(0, 20))
 
-        self.r_preview.grid(row=1, column=0, pady=(0, 1), padx=(0, 5))
-        self.g_preview.grid(row=2, column=0, pady=(0, 1), padx=(0, 5))
-        self.b_preview.grid(row=3, column=0, pady=(0, 1), padx=(0, 5))
-        self.h_preview.grid(row=4, column=0, pady=(0, 1), padx=(0, 5))
-        self.s_preview.grid(row=5, column=0, pady=(0, 1), padx=(0, 5))
-        self.v_preview.grid(row=6, column=0, pady=(0, 1), padx=(0, 5))
-        self.c_preview.grid(row=7, column=0, pady=(0, 1), padx=(0, 5))
-        self.m_preview.grid(row=8, column=0, pady=(0, 1), padx=(0, 5))
-        self.y_preview.grid(row=9, column=0, pady=(0, 1), padx=(0, 5))
-        self.k_preview.grid(row=10, column=0, pady=(0, 1), padx=(0, 5))
+        [self.nametowidget(f'.property.preview_{v}').grid(row=i+1, column=0, pady=(0, 1), padx=(0, 5)) for i, v in enumerate('rgbhsvcmyk')]
+        [self.nametowidget(f'.property.label_{v}').grid(row=i+1, column=1, pady=(0, 1), padx=(0, 5)) for i, v in enumerate('rgbhsvcmyk')]
+        [self.nametowidget(f'.property.{v}{c}').grid(row=next(t)+1, column=2, pady=(0, 1), padx=(0, 5)) for _, v in enumerate(('rgb', 'hsv', 'cmyk')) for c in range(len(v))] if (t:=count()) else 0
+        [self.nametowidget(f'.property.slider_{v}').grid(row=i+1, column=3, pady=(0, 1), padx=(5, 0)) for i, v in enumerate('rgbhsvcmyk')]
 
-        self.r_label.grid(row=1, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.g_label.grid(row=2, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.b_label.grid(row=3, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.h_label.grid(row=4, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.s_label.grid(row=5, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.v_label.grid(row=6, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.c_label.grid(row=7, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.m_label.grid(row=8, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.y_label.grid(row=9, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        self.k_label.grid(row=10, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
         #self.hex_label.grid(row=7, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-
-        self.r_input.grid(row=1, column=2, pady=(0, 1))
-        self.g_input.grid(row=2, column=2, pady=(0, 1))
-        self.b_input.grid(row=3, column=2, pady=(0, 1))
-        self.h_input.grid(row=4, column=2, pady=(0, 1))
-        self.s_input.grid(row=5, column=2, pady=(0, 1))
-        self.v_input.grid(row=6, column=2, pady=(0, 1))
-        self.c_input.grid(row=7, column=2, pady=(0, 1))
-        self.m_input.grid(row=8, column=2, pady=(0, 1))
-        self.y_input.grid(row=9, column=2, pady=(0, 1))
-        self.k_input.grid(row=10, column=2, pady=(0, 1))
         #self.hex_input.grid(row=7, column=2, ipadx=1)
-
-        self.r_slider.grid(row=1, column=3, padx=(10, 0))
-        self.g_slider.grid(row=2, column=3, padx=(10, 0))
-        self.b_slider.grid(row=3, column=3, padx=(10, 0))
-        self.h_slider.grid(row=4, column=3, padx=(10, 0))
-        self.s_slider.grid(row=5, column=3, padx=(10, 0))
-        self.v_slider.grid(row=6, column=3, padx=(10, 0))
-        self.c_slider.grid(row=7, column=3, padx=(10, 0))
-        self.m_slider.grid(row=8, column=3, padx=(10, 0))
-        self.y_slider.grid(row=9, column=3, padx=(10, 0))
-        self.k_slider.grid(row=10, column=3, padx=(10, 0))
 
         #alignment configurations
         self.grid_rowconfigure(0, weight=1)
@@ -224,46 +188,47 @@ class ColorPalette(ThemedTk):
         self.saturation_value_picker.bind('<B1-Motion>', self.pick_saturation_value)
         self.saturation_value_picker.bind('<Button-1>', self.pick_saturation_value)
 
-        self.bind_slider = lambda i, j, v: self.nametowidget(f'.!frame.slider_{v}').bind(j, lambda e: self.pick_rgb(e, v, f'rgb{i}'))
+        self.bind_slider = lambda i, j, v: self.nametowidget(f'.property.slider_{v}').bind(j, lambda e: self.pick_rgb(e, v, f'rgb{i}'))
 
         for i, v in enumerate('rgb'): 
             for j in ['<B1-Motion>', '<Button-1>']:
                 self.bind_slider(i, j, v)
         
         #post initialization
-        self.update_property()
-        self.generate_saturation_value()
-        self.update_cross()
 
         self.generate_slider()
         self.sliders = {
             **{
                 v: [
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_rgb[i].get(), 1, self.current_rgb[i].get()+10, 28, outline='black', width=1),
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_rgb[i].get()+1, 2, self.current_rgb[i].get()+9, 27, outline='white', width=1)
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_rgb[i].get(), 1, self.current_rgb[i].get()+10, 28, outline='black', width=1),
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_rgb[i].get()+1, 2, self.current_rgb[i].get()+9, 27, outline='white', width=1)
                 ] for i, v in enumerate('rgb')
             }, 
             **{
                 v: [
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_hsv[i].get()*255, 1, self.current_hsv[i].get()*255+10, 28, outline='black', width=1),
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_hsv[i].get()*255+1, 2, self.current_hsv[i].get()*255+9, 27, outline='white', width=1)
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_hsv[i].get()*255, 1, self.current_hsv[i].get()*255+10, 28, outline='black', width=1),
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_hsv[i].get()*255+1, 2, self.current_hsv[i].get()*255+9, 27, outline='white', width=1)
                 ] for i, v in enumerate('hsv')
             }, 
         }
 
+        self.update_property()
+        self.generate_saturation_value()
+        self.update_cross()
+
     def increment_callback(self, cat, i):
         if cat=='rgb':
-            self.current_rgb[i].set(self.nametowidget(f'.!frame.rgb{i}').get())
+            self.current_rgb[i].set(self.nametowidget(f'.property.rgb{i}').get())
             [self.current_hsv[i].set(v) for i, v in enumerate(rgb_to_hsv(*(i.get() for i in self.current_rgb)))]
             [self.current_cmyk[i].set(v) for i, v in enumerate(rgb_to_cmyk(*(i.get() for i in self.current_rgb)))]
             self.update_property(rgb=False)
         if cat=='hsv':
-            self.current_hsv[i].set(float(self.nametowidget(f'.!frame.hsv{i}').get())/(360 if not i else 100))
+            self.current_hsv[i].set(float(self.nametowidget(f'.property.hsv{i}').get())/(360 if not i else 100))
             [self.current_rgb[i].set(round(v)) for i, v in enumerate(hsv_to_rgb(*(i.get() for i in self.current_hsv)))]
             [self.current_cmyk[i].set(v) for i, v in enumerate(rgb_to_cmyk(*(i.get() for i in self.current_rgb)))]
             self.update_property(hsv=False)
         if cat=='cmyk':
-            self.current_cmyk[i].set(float(self.nametowidget(f'.!frame.cmyk{i}').get()))
+            self.current_cmyk[i].set(float(self.nametowidget(f'.property.cmyk{i}').get()))
             [self.current_rgb[i].set(v) for i, v, in enumerate(cmyk_to_rgb(*(i.get() for i in self.current_cmyk)))]
             [self.current_hsv[i].set(v) for i, v in enumerate(rgb_to_hsv(*(i.get() for i in self.current_rgb)))]
             self.update_property(cmyk=False)
@@ -271,39 +236,48 @@ class ColorPalette(ThemedTk):
     def generate_slider(self):
         im= Image.new("RGB", (266, 28), "#000000")
         draw = ImageDraw.Draw(im)
-        for s in range(5, 261): draw.line((s+5, 0, s+5, 28), fill=(s, 0, 0)) 
+        for s in range(5, 261): draw.line((s, 0, s, 28), fill=(s-5, 0, 0)) 
         for s in range(5): draw.line((s, 0, s, 28), fill=(0, 0, 0))
         for s in range(261, 266): draw.line((s, 0, s, 28), fill=(255, 0, 0))
         self.r_img = ImageTk.PhotoImage(im.resize((265, 28)))
-        for s in range(5, 261): draw.line((s+5, 0, s+5, 28), fill=(0, s, 0)) 
-        for s in range(5): draw.line((s+5, 0, s+5, 28), fill=(0, 0, 0))
+        for s in range(5, 261): draw.line((s, 0, s, 28), fill=(0, s-5, 0)) 
+        for s in range(5): draw.line((s, 0, s, 28), fill=(0, 0, 0))
         for s in range(261, 266): draw.line((s, 0, s, 28), fill=(0, 255, 0))
         self.g_img = ImageTk.PhotoImage(im.resize((265, 28)))
-        for s in range(5, 261): draw.line((s+5, 0, s+5, 28), fill=(0, 0, s)) 
-        for s in range(5): draw.line((s+5, 0, s+5, 28), fill=(0, 0, 0))
+        for s in range(5, 261): draw.line((s, 0, s, 28), fill=(0, 0, s-5)) 
+        for s in range(5): draw.line((s, 0, s, 28), fill=(0, 0, 0))
         for s in range(261, 266): draw.line((s, 0, s, 28), fill=(0, 0, 255))
         self.b_img = ImageTk.PhotoImage(im.resize((265, 28)))
 
-        im= Image.new("RGB", (101, 28), "#000000")
+        im= Image.new("RGB", (111, 28), "#000000")
         draw = ImageDraw.Draw(im)
-        for s in range(101): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(s, 0, 0, 0))))
-        self.c_img = ImageTk.PhotoImage(im.resize((255, 28)))
-        for s in range(101): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, s, 0, 0))))
-        self.m_img = ImageTk.PhotoImage(im.resize((255, 28)))
-        for s in range(101): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 0, s, 0))))
-        self.y_img = ImageTk.PhotoImage(im.resize((255, 28)))
-        for s in range(101): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 0, 0, s))))
-        self.k_img = ImageTk.PhotoImage(im.resize((255, 28)))
+        for s in range(5): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 0, 0, 0))))
+        for s in range(5, 106): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(s-5, 0, 0, 0))))
+        for s in range(106, 111): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(360, 0, 0, 0))))
+        self.c_img = ImageTk.PhotoImage(im.resize((265, 28)))
+        for s in range(5, 106): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, s-5, 0, 0))))
+        for s in range(106, 111): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 360, 0, 0))))
+        self.m_img = ImageTk.PhotoImage(im.resize((265, 28)))
+        for s in range(5, 106): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 0, s-5, 0))))
+        for s in range(106, 111): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 0, 360, 0))))
+        self.y_img = ImageTk.PhotoImage(im.resize((265, 28)))
+        for s in range(5, 106): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 0, 0, s-5))))
+        for s in range(106, 111): draw.line((s, 0, s, 28), fill=tuple(map(int, cmyk_to_rgb(0, 0, 0, 360))))
+        self.k_img = ImageTk.PhotoImage(im.resize((265, 28)))
 
-        for s in range(101): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), s/100, 1))))
-        self.s_img = ImageTk.PhotoImage(im.resize((255, 28)))
-        for s in range(101): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 1, s/100))))
-        self.v_img = ImageTk.PhotoImage(im.resize((255, 28)))
+        for s in range(5): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 0, 1))))
+        for s in range(5, 106): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), (s-5)/100, 1))))
+        for s in range(106, 111): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 1, 1))))
+        self.s_img = ImageTk.PhotoImage(im.resize((265, 28)))
+        for s in range(5): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 1, 0))))
+        for s in range(5, 106): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 1, (s-5)/100))))
+        for s in range(106, 111): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 1, 1))))
+        self.v_img = ImageTk.PhotoImage(im.resize((265, 28)))
 
         im= Image.new("RGB", (371, 28), "#000000")
         draw = ImageDraw.Draw(im)
         for s in range(5): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(0, 1, 1))))
-        for s in range(5, 366): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(s/360, 1, 1))))
+        for s in range(5, 366): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb((s-5)/360, 1, 1))))
         for s in range(366, 371): draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(1, 1, 1))))
         self.h_img = ImageTk.PhotoImage(im.resize((265, 28)))
 
@@ -323,17 +297,17 @@ class ColorPalette(ThemedTk):
     def update_slider(self, rgb=True, hsv=True, cmyk=True):
         if rgb:
             for i, v in enumerate('rgb'):
-                [self.nametowidget(f'.!frame.slider_{v}').delete(i) for i in self.sliders[v]]
+                [self.nametowidget(f'.property.slider_{v}').delete(i) for i in self.sliders[v]]
                 self.sliders[v] = [
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_rgb[i].get(), 1, self.current_rgb[i].get()+10, 28, outline='black', width=1),
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_rgb[i].get()+1, 2, self.current_rgb[i].get()+9, 27, outline='white', width=1)
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_rgb[i].get(), 1, self.current_rgb[i].get()+10, 28, outline='black', width=1),
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_rgb[i].get()+1, 2, self.current_rgb[i].get()+9, 27, outline='white', width=1)
                 ]
         if hsv: 
             for i, v in enumerate('hsv'):
-                [self.nametowidget(f'.!frame.slider_{v}').delete(i) for i in self.sliders[v]]
+                [self.nametowidget(f'.property.slider_{v}').delete(i) for i in self.sliders[v]]
                 self.sliders[v] = [
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_hsv[i].get()*255, 1, self.current_hsv[i].get()*255+10, 28, outline='black', width=1),
-                    self.nametowidget(f'.!frame.slider_{v}').create_rectangle(self.current_hsv[i].get()*255+1, 2, self.current_hsv[i].get()*255+9, 27, outline='white', width=1)
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_hsv[i].get()*255, 1, self.current_hsv[i].get()*255+10, 28, outline='black', width=1),
+                    self.nametowidget(f'.property.slider_{v}').create_rectangle(self.current_hsv[i].get()*255+1, 2, self.current_hsv[i].get()*255+9, 27, outline='white', width=1)
                 ]
         if cmyk: 
             pass
@@ -342,14 +316,14 @@ class ColorPalette(ThemedTk):
         if e.x < 5: e.x = 5
         if e.x > 260: e.x = 260
 
-        slider = self.nametowidget(f'.!frame.slider_{t}')
+        slider = self.nametowidget(f'.property.slider_{t}')
         [slider.delete(i) for i in self.sliders[t]]
         self.sliders[t] = [
             slider.create_rectangle(e.x-5, 1, e.x+5, 28, outline='black', width=1),
             slider.create_rectangle(e.x-4, 2, e.x+4, 27, outline='white', width=1)
         ]
-        self.nametowidget(f'.!frame.{n}').set(e.x-5)
-        self.update_rgb(f'.!frame.{n}', e.x-5)
+        self.nametowidget(f'.property.{n}').set(e.x-5)
+        self.update_rgb(f'.property.{n}', e.x-5)
         self.update_slider(rgb=False)
 
     #things to do when user pick a new hue value in the colorful line
@@ -400,7 +374,7 @@ class ColorPalette(ThemedTk):
                 if d=='1' and S.isdigit(): 
                     self.nametowidget(W).delete(0, 'end')
                     self.nametowidget(W).insert(0, float(S))
-                    self.update_hsv(W, '0')
+                    self.update_hsv(W, float(S))
                     return True
                 elif not(int(d)):
                     self.nametowidget(W).set(0.0)
@@ -452,7 +426,7 @@ class ColorPalette(ThemedTk):
                 if d=='1' and S.isdigit(): 
                     self.nametowidget(W).delete(0, 'end')
                     self.nametowidget(W).insert(0, S)
-                    self.update_rgb(W, P) if max_val==255 else self.update_cmyk(W, P)
+                    self.update_rgb(W, S) if max_val==255 else self.update_cmyk(W, S)
                     return True
                 elif not(int(d)):
                     self.nametowidget(W).set(0)
@@ -476,7 +450,10 @@ class ColorPalette(ThemedTk):
         if S.isdigit():
             if not 0<=int(P)<=max_val:
                 return False
-            if (not(int(s)) and not i) or (not int(s) and i):
+            if not int(s) and not int(i):
+                self.update_rgb(W, P) if max_val==255 else self.update_cmyk(W, P)
+                return True
+            if (not(int(s)) and not int(i)) or (not int(s) and int(i)):
                 self.nametowidget(W).set(S)
                 self.update_rgb(W, P) if max_val==255 else self.update_cmyk(W, P)
                 return False
@@ -544,6 +521,7 @@ class ColorPalette(ThemedTk):
         
         if hex_: 
             self.current_hex.set(rgb_to_hex([i.get() for i in self.current_rgb])[1:])
+        self.update_slider()
             
         if not all((rgb, hsv, hex_, cmyk)):
             self.curr_hue = self.current_hsv[0].get()*360
@@ -552,16 +530,7 @@ class ColorPalette(ThemedTk):
             self.generate_saturation_value()
             self.update_cross()
 
-        self.r_preview.delete('all')
-        self.g_preview.delete('all')
-        self.b_preview.delete('all')
-        self.h_preview.delete('all')
-        self.s_preview.delete('all')
-        self.v_preview.delete('all')
-        self.c_preview.delete('all')
-        self.m_preview.delete('all')
-        self.y_preview.delete('all')
-        self.k_preview.delete('all')
+        [self.nametowidget(f'.property.preview_{i}').delete('all') for i in 'rgbhsvcmyk']
 
         self.r_preview.create_rectangle(0, 0, 16, 16, fill=rgb_to_hex((self.current_rgb[0].get(), 0, 0)),  width=0)
         self.g_preview.create_rectangle(0, 0, 16, 16, fill=rgb_to_hex((0, self.current_rgb[1].get(), 0)),  width=0)
