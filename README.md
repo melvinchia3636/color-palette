@@ -1,6 +1,9 @@
 # color-palette
 A simple and full-featured Color Palette made using Python Tkinter library
 
+## sixth update
+![color-picker](https://github.com/melvinchia3636/color-palette/blob/04428ea09e12d0acf540f92d3c5bc310e7ee7697/color%20picker.png)
+
 ## fifth update
 ![color-picker](https://github.com/melvinchia3636/color-palette/blob/836bd27a5c779c6f5822634e7a0f00b185aa070c/color%20picker.png)
 
