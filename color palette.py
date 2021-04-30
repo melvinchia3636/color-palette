@@ -9,7 +9,7 @@ from itertools import count
 from functools import partial
 
 #convert RGB to HEX 
-def rgb_to_hex(rgb):
+def rgb_to_hex(rgb): 
     return '#%02X%02X%02X' % (int(rgb[0]), int(rgb[1]), int(rgb[2]))
 
 #convert HSV to RGB
