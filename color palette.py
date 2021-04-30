@@ -66,34 +66,23 @@ def cmyk_to_rgb(c, m, y, k, cmyk_scale=100, rgb_scale=255):
     b = rgb_scale * (1.0 - y / float(cmyk_scale)) * (1.0 - k / float(cmyk_scale))
     return r, g, b
 
-def isDark(color):
-	r, g, b = ImageColor.getrgb(color)
-	
-	hsp = math.sqrt(
-		0.299 * (r * r) +
-		0.587 * (g * g) +
-		0.114 * (b * b)
-	)
-
-	return not hsp > 90
-
 class ColorPicker(ThemedTk):
     def __init__(self):
         #parent initialize
         super(ColorPicker, self).__init__(theme='breeze', background='#f0f0f0')
 
         #window configurations
-        self.geometry('880x480')
+        self.geometry('1180x480')
         self.title('Color Picker')
         self.resizable(False, False)
 
         #non-widget variables initialization
         self.curr_hue = 0
-        self.current_corr = [360, 0]
+        self.current_corr = [356, 5]
         self.current_hsv = [DoubleVar(value=i) for i in (0, 1, 1)]
         self.current_rgb = [IntVar(value=i) for i in hsv_to_rgb(*(i.get() for i in self.current_hsv))]
         self.current_cmyk = [IntVar(value=i) for i in rgb_to_cmyk(*(i.get() for i in self.current_rgb))]
-        self.current_cross = []
+        self.current_selector = []
         self.before_delete_value = ''
         self.current_hex = StringVar()
 
@@ -108,9 +97,12 @@ class ColorPicker(ThemedTk):
         input_maxval_increment = [(255, 1), (255, 1), (255, 1), (360, 0.1), (255, 0.1), (255, 0.1), (100, 1), (100, 1), (100, 1), (100, 1)]
 
         #widgets initialization
-        self.saturation_value_picker = Canvas(self, width=360, height=360, border=0, background='black', highlightthickness=1, highlightbackground='#B4B4B4')
+        self.color_field = Canvas(self, width=360, height=360, border=0, background='black', highlightthickness=1, highlightbackground='#B4B4B4', cursor="crosshair")
+        self.misc_frame = Frame(self, name='misc')
         self.property_frame = Frame(self, background='#f0f0f0', name='property')
-        self.color_showcase = Canvas(self.property_frame, width=101, height=101, highlightbackground='#B4B4B4', highlightthickness=1)
+        self.color_showcase_frame = ttk.LabelFrame(self.misc_frame, name='color_showcase_frame', text=' Current Color ')
+        self.color_code_frame = ttk.LabelFrame(self.misc_frame, name='color_code_frame', text=' Color Code ')
+        self.color_showcase = Canvas(self.color_showcase_frame, width=190, height=51, highlightbackground='#B4B4B4', highlightthickness=1)
 
         self.widgets = {
             **{f'{i}_preview': Canvas(self.property_frame, highlightthickness=1, highlightbackground='#B4B4B4', width=15, height=15, name=f'preview_{i}') for i in 'rgbhsvcmyk'},
@@ -131,30 +123,37 @@ class ColorPicker(ThemedTk):
 
         self.__dict__.update(self.widgets)
 
-        #self.hex_label = ttk.Label(self.property_frame, text='HTML', background='#f0f0f0', justify=LEFT, anchor=W)
-        #self.hex_input = ttk.Entry(self.property_frame, width=8, font=Font(size=9), validate="key", validatecommand=hex_validator, textvariable=self.current_hex)
+        self.hex_label = ttk.Label(self.color_code_frame, text='HTML', background='#f0f0f0', justify=LEFT, anchor=W)
+        self.rgb_label = ttk.Label(self.color_code_frame, text='RGB', background='#f0f0f0', justify=LEFT, anchor=W)
+        self.hex_input = ttk.Entry(self.color_code_frame, width=16, font=Font(size=9), validate="key", validatecommand=validator['hex'], textvariable=self.current_hex)
+        self.rgb_input = ttk.Entry(self.color_code_frame, width=16, font=Font(size=9))
 
         #widget placing
-        self.saturation_value_picker.grid(row=0, column=1)
-        self.property_frame.grid(row=0, column=3, pady=(3, 0), padx=(20, 0))
-        #self.color_showcase.grid(row=0, column=0, columnspan=3, pady=(0, 20))
+        self.color_field.grid(row=0, column=1)
+        self.misc_frame.grid(row=0, column=2, padx=45)
+        self.property_frame.grid(row=0, column=3, pady=(3, 0))
+        self.color_showcase_frame.grid(row=0, column=0, pady=(0, 20))
+        self.color_code_frame.grid(row=1, column=0)
+        self.color_showcase.grid(row=0, column=0, padx=10, pady=10)
+        self.hex_label.grid(row=0, column=0, pady=(20, 10), padx=(20, 10), sticky = W)
+        self.hex_input.grid(row=0, column=1, ipadx=1, padx=(0, 20))
+        self.rgb_label.grid(row=1, column=0, pady=(0, 20), padx=(20, 10), sticky = W)
+        self.rgb_input.grid(row=1, column=1, ipadx=1, padx=(0, 20), pady=(0, 20))
 
         [self.nametowidget(f'.property.preview_{v}').grid(row=i+1, column=0, pady=(0, 1), padx=(0, 5)) for i, v in enumerate('rgbhsvcmyk')]
         [self.nametowidget(f'.property.label_{v}').grid(row=i+1, column=1, pady=(0, 1), padx=(0, 5), sticky='W') for i, v in enumerate('rgbhsvcmyk')]
         [self.nametowidget(f'.property.{v}{c}').grid(row=next(t)+1, column=2, pady=(0, 1), padx=(0, 5)) for _, v in enumerate(('rgb', 'hsv', 'cmyk')) for c in range(len(v))] if (t:=count()) else 0
         [self.nametowidget(f'.property.slider_{v}').grid(row=i+1, column=3, pady=(0, 1), padx=(5, 0)) for i, v in enumerate('rgbhsvcmyk')]
 
-        #self.hex_label.grid(row=7, column=1, pady=(0, 1), padx=(0, 10), sticky = W)
-        #self.hex_input.grid(row=7, column=2, ipadx=1)
-
         #alignment configurations
+        self.color_code_frame.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(4, weight=1)
 
         #key binding
-        self.saturation_value_picker.bind('<B1-Motion>', self.pick_saturation_value)
-        self.saturation_value_picker.bind('<Button-1>', self.pick_saturation_value)
+        self.color_field.bind('<B1-Motion>', self.pick_saturation_value)
+        self.color_field.bind('<Button-1>', self.pick_saturation_value)
   
         [self.nametowidget(f'.property.slider_{v}').bind(j, partial(self.pick_rgb, v, f'rgb{i}')) for j in ['<B1-Motion>', '<Button-1>'] for i, v in enumerate('rgb')]
         [self.nametowidget(f'.property.slider_{v}').bind(j, partial(self.pick_hsv, v, f'hsv{i}')) for j in ['<B1-Motion>', '<Button-1>'] for i, v in enumerate('hsv')]
@@ -185,8 +184,7 @@ class ColorPicker(ThemedTk):
         }
 
         self.update_property()
-        self.generate_saturation_value()
-        self.update_cross()
+        self.generate_color_field()
 
     def increment_callback(self, cat, i):
         if cat=='rgb':
@@ -224,13 +222,14 @@ class ColorPicker(ThemedTk):
 
         [self.nametowidget(f'.property.slider_{i}').create_image(1, 1, image=eval(f'self.{i}_img'), anchor=NW) for i in 'rgbhsvcmyk']
 
-    def update_slider(self):
-        [self.nametowidget(f'.property.slider_{v}').delete('all') for v in 'sv']
-        sv_canvas = Image.new("RGB", (111, 28), "#FFFFFF")
-        sv_draw = ImageDraw.Draw(sv_canvas)
-        sv_img = {f'{v}_img': [sv_draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 1 if c else (s-5)/100, (s-5)/100 if c else 1)))) for s in range(111)] and ImageTk.PhotoImage(sv_canvas.resize((265, 28))) for c, v in enumerate('sv')}
-        self.__dict__.update(sv_img)
-        [self.nametowidget(f'.property.slider_{i}').create_image(1, 1, image=eval(f'self.{i}_img'), anchor=NW) for i in 'sv']
+    def update_slider(self, is_color_field=False):
+        if not is_color_field:
+            [self.nametowidget(f'.property.slider_{v}').delete('all') for v in 'sv']
+            sv_canvas = Image.new("RGB", (111, 28), "#FFFFFF")
+            sv_draw = ImageDraw.Draw(sv_canvas)
+            sv_img = {f'{v}_img': [sv_draw.line((s, 0, s, 28), fill=tuple(map(int, hsv_to_rgb(self.current_hsv[0].get(), 1 if c else (s-5)/100, (s-5)/100 if c else 1)))) for s in range(111)] and ImageTk.PhotoImage(sv_canvas.resize((265, 28))) for c, v in enumerate('sv')}
+            self.__dict__.update(sv_img)
+            [self.nametowidget(f'.property.slider_{i}').create_image(1, 1, image=eval(f'self.{i}_img'), anchor=NW) for i in 'sv']
 
         for i, v in enumerate('rgb'):
             [self.nametowidget(f'.property.slider_{v}').delete(i) for i in self.sliders[v]]
@@ -273,7 +272,7 @@ class ColorPicker(ThemedTk):
 
         if t=='h':
             self.curr_hue = (e.x-5)/255*360
-            self.generate_saturation_value()
+            self.generate_color_field()
 
         slider = self.nametowidget(f'.property.slider_{t}')
         [slider.delete(i) for i in self.sliders[t]]
@@ -425,7 +424,7 @@ class ColorPicker(ThemedTk):
 
     def update_hex(self, P):
         self.current_hex.set(P)
-        rgb = ImageColor.getrgb('#'+P)
+        rgb = ImageColor.getrgb(P)
         [self.current_rgb[i].set(v) for i, v in enumerate(rgb)]
         [self.current_hsv[i].set(v) for i, v in enumerate(rgb_to_hsv(*(i.get() for i in self.current_rgb)))]
         [self.current_cmyk[i].set(v) for i, v in enumerate(rgb_to_cmyk(*(i.get() for i in self.current_rgb)))]
@@ -449,15 +448,19 @@ class ColorPicker(ThemedTk):
         [self.nametowidget(f'.property.rgb{i}').set(round(self.current_rgb[i].get())) for i in range(3)]
         [self.nametowidget(f'.property.hsv{i}').set(round(self.current_hsv[i].get()*(100 if i else 360), 1)) for i in range(3)]
         [self.nametowidget(f'.property.cmyk{i}').set(round(self.current_cmyk[i].get(), 1)) for i in range(4)]
-        self.current_hex.set(rgb_to_hex([i.get() for i in self.current_rgb])[1:])
-        self.update_slider()
+        self.current_hex.set(rgb_to_hex([i.get() for i in self.current_rgb]))
+        self.update_slider(color_field)
             
         if not color_field:
             self.curr_hue = self.current_hsv[0].get()*360
-            self.current_corr = (self.current_hsv[1].get()*360, 360-self.current_hsv[2].get()*360)
+            self.current_corr = [self.current_hsv[1].get()*360, 360-self.current_hsv[2].get()*360]
+            if self.current_corr[0] < 5: self.current_corr[0] = 5
+            if self.current_corr[1] < 5: self.current_corr[1] = 5
+            if self.current_corr[0] > 356: self.current_corr[0] = 356
+            if self.current_corr[1] > 356: self.current_corr[1] = 356
 
-            self.generate_saturation_value()
-            self.update_cross()
+            self.generate_color_field()
+            self.update_selector()
 
         [self.nametowidget(f'.property.preview_{i}').delete('all') for i in 'rgbhsvcmyk']
 
@@ -473,38 +476,44 @@ class ColorPicker(ThemedTk):
         self.k_preview.create_rectangle(0, 0, 16, 16, fill=rgb_to_hex(cmyk_to_rgb(0, 0, 0, self.current_cmyk[3].get())),  width=0)
 
         self.color_showcase.delete('all')
-        self.color_showcase.create_rectangle(2, 2, 101, 101, fill=rgb_to_hex([i.get() for i in self.current_rgb]), width=0)
+        self.color_showcase.create_rectangle(2, 2, 190, 51, fill=rgb_to_hex([i.get() for i in self.current_rgb]), width=0)
+        self.rgb_input.delete(0, 'end')
+        self.rgb_input.insert(0, 'RGB({}, {}, {})'.format(*(i.get() for i in self.current_rgb)))
 
     #things to do when user click on a new place on the big saturationn and value palette
     def pick_saturation_value(self, e):
         #prevent mouse coordinates out of range
-        if e.x<0: e.x = 0
-        if e.y<0: e.y = 0
-        if e.x>360: e.x = 360
-        if e.y>360: e.y = 360
+        if e.x < 0: e.x = 0
+        if e.y < 0: e.y = 0
+        if e.x > 360: e.x = 360
+        if e.y > 360: e.y = 360
 
-        self.current_corr = [e.x, e.y]
+        corr_x, corr_y = e.x, e.y
+
+        if corr_x < 5: corr_x = 5
+        if corr_y < 5: corr_y = 5
+        if corr_x > 356: corr_x = 356
+        if corr_y > 356: corr_y = 356
+
+        self.current_corr = [corr_x, corr_y]
         sv = [e.x, (360-e.y)]
         [self.current_hsv[i].set(v) for i, v in enumerate((self.curr_hue/360, *[i/360 for i in sv]))]
         [self.current_rgb[i].set(v) for i, v in enumerate([round(i*255) for i in colorsys.hsv_to_rgb(*[i.get() for i in self.current_hsv])])]
         [self.current_cmyk[i].set(v) for i, v in enumerate(rgb_to_cmyk(*(i.get() for i in self.current_rgb)))]
         self.update_property(color_field=True)
-        self.update_cross()
+        self.update_selector()
 
-    #makes the crosshair to follow user's mouse pointer on saturationn and value palette
-    def update_cross(self):
-        [self.saturation_value_picker.delete(i) for i in self.current_cross]
-        color = 'white' if isDark('#'+self.current_hex.get()) else 'black'
-        self.current_cross = [
-            self.saturation_value_picker.create_line(self.current_corr[0]+3, self.current_corr[1], self.current_corr[0]+8, self.current_corr[1], width=2, fill=color),
-            self.saturation_value_picker.create_line(self.current_corr[0]-3, self.current_corr[1], self.current_corr[0]-8, self.current_corr[1], width=2, fill=color), 
-            self.saturation_value_picker.create_line(self.current_corr[0], self.current_corr[1]+3, self.current_corr[0], self.current_corr[1]+8, width=2, fill=color),
-            self.saturation_value_picker.create_line(self.current_corr[0], self.current_corr[1]-3, self.current_corr[0], self.current_corr[1]-8, width=2, fill=color)
+    #makes the selectorhair to follow user's mouse pointer on saturationn and value palette
+    def update_selector(self):
+        [self.color_field.delete(i) for i in self.current_selector]
+        self.current_selector = [
+            self.color_field.create_rectangle(self.current_corr[0]-3, self.current_corr[1]-3, self.current_corr[0]+3, self.current_corr[1]+3, width=1, outline='white'),
+            self.color_field.create_rectangle(self.current_corr[0]-4, self.current_corr[1]-4, self.current_corr[0]+4, self.current_corr[1]+4, width=1, outline='black')
         ]
 
     #generate a new saturationn and value palette when user pick a new hue
-    def generate_saturation_value(self):
-        self.saturation_value_picker.delete('all')
+    def generate_color_field(self):
+        self.color_field.delete('all')
         im= Image.new("HSV", (256, 256), "#000000")
         self.pixels = im.load()
 
@@ -523,8 +532,8 @@ class ColorPicker(ThemedTk):
 
         self.im = im.resize((360, 360))
         self.img = ImageTk.PhotoImage(self.im)
-        self.saturation_value_picker.create_image(1, 1, image=self.img, anchor=NW)
-        self.update_cross()
+        self.color_field.create_image(1, 1, image=self.img, anchor=NW)
+        self.update_selector()
 
 if __name__ == '__main__':
     root = ColorPicker()
