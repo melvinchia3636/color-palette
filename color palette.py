@@ -1,4 +1,4 @@
-from tkinter import *
+from tkinter import * 
 import tkinter.ttk as ttk
 from tkinter.font import Font
 from ttkthemes import ThemedTk
