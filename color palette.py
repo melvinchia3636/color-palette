@@ -130,13 +130,13 @@ class ColorPicker(ThemedTk):
         self.misc_frame = Frame(self, name='misc')
         self.property_frame = Frame(self, background='#f0f0f0', name='property')
 
-        color_frames = {f'{i}_frame': ttk.LabelFrame(self.property_frame, text=i.upper(), name=f'frame_{i}') for i in ['rgb', 'hsv', 'hsl', 'cmyk']}
+        color_frames = {f'{i}_frame': ttk.LabelFrame(self.property_frame, text=f' {i.upper()} ', name=f'frame_{i}') for i in ['rgb', 'hsv', 'hsl', 'cmyk']}
         self.__dict__.update(color_frames)
 
         self.color_showcase_frame = ttk.LabelFrame(self.misc_frame, name='color_showcase_frame', text=' Current Color ')
         self.color_code_frame = ttk.LabelFrame(self.misc_frame, name='color_code_frame', text=' Color Code ')
-        self.color_showcase = Canvas(self.color_showcase_frame, width=90, height=136, highlightbackground='#B4B4B4', highlightthickness=1)
-        self.hex_label = ttk.Label(self.color_code_frame, text='HTML', background='#f0f0f0', justify=LEFT, anchor=W)
+        self.color_showcase = Canvas(self.color_showcase_frame, width=84, height=136, highlightbackground='#B4B4B4', highlightthickness=1)
+        self.hex_label = ttk.Label(self.color_code_frame, text='HEX', background='#f0f0f0', justify=LEFT, anchor=W)
         self.hsl_label = ttk.Label(self.color_code_frame, text='HSL', background='#f0f0f0', justify=LEFT, anchor=W)
         self.rgb_label = ttk.Label(self.color_code_frame, text='RGB', background='#f0f0f0', justify=LEFT, anchor=W)
         self.hex_input = ttk.Entry(self.color_code_frame, width=19, font=Font(size=9), validate="key", validatecommand=validator['hex'], textvariable=self.current_hex)
@@ -531,10 +531,11 @@ class ColorPicker(ThemedTk):
         self.k_preview.create_rectangle(0, 0, 16, 16, fill=rgb_to_hex(cmyk_to_rgb(0, 0, 0, self.current_cmyk[3].get())),  width=0)
 
         self.color_showcase.delete('all')
-        self.color_showcase.create_rectangle(2, 2, 90, 136, fill=rgb_to_hex([i.get() for i in self.current_rgb]), width=0)
+        self.color_showcase.create_rectangle(2, 2, 84, 136, fill=rgb_to_hex([i.get() for i in self.current_rgb]), width=0)
         self.rgb_input.delete(0, 'end')
         self.rgb_input.insert(0, 'rgb({}, {}, {})'.format(*(i.get() for i in self.current_rgb)))
-        self.hsl_input.insert(0, 'hsl({}, {}%, {}%)'.format(*(v.get()*(100 if i else 360) for i, v in enumerate(self.current_hsl))))
+        self.hsl_input.delete(0, 'end')
+        self.hsl_input.insert(0, 'hsl({}, {}%, {}%)'.format(*(round(v.get()*(100 if i else 360), 1) for i, v in enumerate(self.current_hsl))))
 
     #things to do when user click on a new place on the big saturationn and value palette
     def pick_saturation_value(self, e):
